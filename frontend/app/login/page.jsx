@@ -1,95 +1,96 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '../../lib/api.js';
-import { Button, TextField, Paper, Stack, Typography } from '@mui/material';
+import { Button, TextField, Paper, Stack, Typography, CircularProgress } from '@mui/material';
 import toast from 'react-hot-toast';
 
-export default function LoginPage(){
+export default function LoginPage() {
   const router = useRouter();
   const [usernameOrEmail, setU] = useState('');
   const [password, setP] = useState('');
   const [mfaToken, setOtp] = useState('');
   const [backupCode, setBackup] = useState('');
   const [msg, setMsg] = useState('');
+  const [submitting, setSubmitting] = useState(false);   // <-- lock
+  const controllerRef = useRef(null);                    // optional: abort previous try
 
-  // Check if user is already logged in and redirect
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    if (token) {
-      // User is already logged in, redirect to home page
-      router.push('/');
-    }
+    if (token) router.push('/');
   }, [router]);
 
-  const submit = async (e)=>{
+  const submit = async (e) => {
     e.preventDefault();
+    if (submitting) return;               // <-- ignore extra clicks/enters
+    setSubmitting(true);
+
+    // abort any previous attempt (belt & suspenders)
+    if (controllerRef.current) controllerRef.current.abort();
+    controllerRef.current = new AbortController();
+
     setMsg('');
-    try{
-      const res = await api.post('/auth/login', { usernameOrEmail, password, mfaToken, backupCode });
+    try {
+      const res = await api.post(
+        '/auth/login',
+        { usernameOrEmail, password, mfaToken, backupCode },
+        { signal: controllerRef.current.signal }
+      );
       const { accessToken, refreshToken } = res.data.data.tokens;
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       toast.success('Successfully logged in!');
       setMsg('Logged in!');
-      
-      // Redirect to home page after successful login
-      setTimeout(() => {
-        router.push('/');
-      }, 1000); // Small delay to show success message
-      
-    }catch(e){
-      const errorMsg = e.response?.data?.message || 'Login failed';
+      router.push('/');
+    } catch (e) {
+      const errorMsg = e.response?.data?.message || (e.name === 'CanceledError' ? 'Canceled' : 'Login failed');
       toast.error(errorMsg);
       setMsg(errorMsg);
+    } finally {
+      controllerRef.current = null;
+      setSubmitting(false);
     }
   };
 
-  const oauth = (provider)=>{ window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/social/${provider}`; };
-
-  const triggerTestError = () => {
-    // Trigger a test error for testing error reporting
-    throw new Error('Test error triggered for testing purposes');
+  const oauth = (provider) => {
+    if (submitting) return;               // optional: also lock OAuth buttons
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/social/${provider}`;
   };
+
+  const triggerTestError = () => { throw new Error('Test error triggered for testing purposes'); };
 
   const forgotPassword = async () => {
-    if (!usernameOrEmail) {
-      toast.error('Please enter your email address first');
-      return;
-    }
+    if (!usernameOrEmail) return toast.error('Please enter your email address first');
     try {
       await api.post('/auth/forgot', { email: usernameOrEmail });
       toast.success('Password reset email sent! Check your inbox.');
     } catch (e) {
-      const errorMsg = e.response?.data?.message || 'Failed to send reset email';
-      toast.error(errorMsg);
+      toast.error(e.response?.data?.message || 'Failed to send reset email');
     }
   };
 
   return (
     <Paper className="p-6 max-w-md">
       <Typography variant="h5" className="mb-4">Login</Typography>
-      <form onSubmit={submit}>
+      <form onSubmit={submit} onKeyDown={(e)=>{ if (submitting && e.key === 'Enter') e.preventDefault(); }}>
         <Stack spacing={2}>
-          <TextField label="Username or Email" value={usernameOrEmail} onChange={e=>setU(e.target.value)} fullWidth/>
-          <TextField label="Password" type="password" value={password} onChange={e=>setP(e.target.value)} fullWidth/>
-          <TextField label="TOTP (if enabled)" value={mfaToken} onChange={e=>setOtp(e.target.value)} fullWidth/>
-          <TextField label="Backup code (optional)" value={backupCode} onChange={e=>setBackup(e.target.value)} fullWidth/>
-          <Button type="submit" variant="contained">Login</Button>
-          <Typography color={msg.includes('failed') ? 'error' : 'success'}>{msg}</Typography>
-          
+          <TextField label="Username or Email" value={usernameOrEmail} onChange={e=>setU(e.target.value)} fullWidth disabled={submitting}/>
+          <TextField label="Password" type="password" value={password} onChange={e=>setP(e.target.value)} fullWidth disabled={submitting}/>
+          <TextField label="TOTP (if enabled)" value={mfaToken} onChange={e=>setOtp(e.target.value)} fullWidth disabled={submitting}/>
+          <TextField label="Backup code (optional)" value={backupCode} onChange={e=>setBackup(e.target.value)} fullWidth disabled={submitting}/>
+          <Button type="submit" variant="contained" disabled={submitting} aria-busy={submitting}>
+            {submitting ? (<><CircularProgress size={18} sx={{ mr: 1 }} /> Signing in…</>) : 'Login'}
+          </Button>
+          <Typography color={msg.includes('fail') ? 'error' : 'success'}>{msg}</Typography>
+
           <div className="flex gap-2">
-            <Button variant="text" onClick={forgotPassword} size="small">
-              Forgot Password?
-            </Button>
-            <Button variant="text" onClick={triggerTestError} size="small" color="error">
-              Test Error
-            </Button>
+            <Button variant="text" onClick={forgotPassword} size="small" disabled={submitting}>Forgot Password?</Button>
+            <Button variant="text" onClick={triggerTestError} size="small" color="error" disabled={submitting}>Test Error</Button>
           </div>
-          
+
           <div className="flex gap-2">
-            <Button variant="outlined" onClick={()=>oauth('google')}>Continue with Google</Button>
-            <Button variant="outlined" onClick={()=>oauth('microsoft')}>Microsoft</Button>
+            <Button variant="outlined" onClick={()=>oauth('google')} disabled={submitting}>Continue with Google</Button>
+            <Button variant="outlined" onClick={()=>oauth('microsoft')} disabled={submitting}>Microsoft</Button>
           </div>
         </Stack>
       </form>
