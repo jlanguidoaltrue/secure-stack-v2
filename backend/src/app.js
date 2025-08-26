@@ -22,11 +22,9 @@ import { initPassport } from "./passport/index.js";
 
 const app = express();
 
-// CORS configuration - More permissive for development
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = envVars.CORS_ORIGIN.split(",").map((s) => s.trim());
-    // console.log("CORS check - Origin:", origin, "Allowed:", allowedOrigins);
 
     // In development, be more permissive
     if (envVars.NODE_ENV === "development") {
@@ -75,6 +73,7 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
