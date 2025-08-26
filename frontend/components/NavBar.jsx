@@ -1,68 +1,103 @@
-'use client';
-import Link from 'next/link';
-import { AppBar, Toolbar, Button, Box } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+"use client";
+import Link from "next/link";
+import { AppBar, Toolbar, Button, Box } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-export default function NavBar(){
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const json = atob(padded);
+    return JSON.parse(
+      decodeURIComponent(
+        [...json]
+          .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+          .join("")
+      )
+    );
+  } catch {
+    return null;
+  }
+}
+
+export default function NavBar() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
-  useEffect(() => {
-    // Check authentication status
-    const token = localStorage.getItem('accessToken');
+  const updateAuthState = () => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
     if (token) {
       setIsAuthenticated(true);
-      // Decode token to get user role (simplified - in production use proper JWT decode)
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUserRole(payload.role);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
+      const payload = parseJwt(token);
+      setUserRole(payload?.role ?? null);
     } else {
       setIsAuthenticated(false);
       setUserRole(null);
     }
-  }, []);
-
-  const logout = () => { 
-    localStorage.removeItem('accessToken'); 
-    localStorage.removeItem('refreshToken'); 
-    setIsAuthenticated(false);
-    setUserRole(null);
-    router.push('/login'); 
   };
 
-  const isAdmin = userRole === 'superadmin' || userRole === 'tenant_admin';
+  useEffect(() => {
+    updateAuthState(); // initial
+    const onChange = () => updateAuthState();
+    window.addEventListener("storage", onChange); // other tabs
+    window.addEventListener("auth:changed", onChange); // same tab custom event
+    return () => {
+      window.removeEventListener("storage", onChange);
+      window.removeEventListener("auth:changed", onChange);
+    };
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    window.dispatchEvent(new Event("auth:changed"));
+    router.push("/login");
+  };
+
+  const isAdmin = userRole === "superadmin" || userRole === "tenant_admin";
 
   return (
     <AppBar position="static" color="inherit" elevation={0}>
       <Toolbar className="max-w-6xl w-full mx-auto">
         <Box className="flex gap-3">
-          <Button component={Link} href="/" color="primary">Home</Button>
-          
-          {/* Show these only when authenticated */}
-          {isAuthenticated && (
+          <Button component={Link} href="/" color="primary">
+            Home
+          </Button>
+
+          {isAuthenticated ? (
             <>
-              <Button component={Link} href="/users" color="primary">Users</Button>
-              <Button component={Link} href="/profile" color="primary">Profile</Button>
-              <Button component={Link} href="/upload" color="primary">Upload</Button>
+              <Button component={Link} href="/users" color="primary">
+                Users
+              </Button>
+              <Button component={Link} href="/profile" color="primary">
+                Profile
+              </Button>
+              <Button component={Link} href="/upload" color="primary">
+                Upload
+              </Button>
               {isAdmin && (
-                <Button component={Link} href="/admin/error-logs" color="primary">Error Logs</Button>
+                <Button
+                  component={Link}
+                  href="/admin/error-logs"
+                  color="primary"
+                >
+                  Error Logs
+                </Button>
               )}
+              <Button onClick={logout} color="primary">
+                Logout
+              </Button>
             </>
-          )}
-          
-          {/* Show login only when not authenticated */}
-          {!isAuthenticated && (
-            <Button component={Link} href="/login" color="primary">Login</Button>
-          )}
-          
-          {/* Show logout only when authenticated */}
-          {isAuthenticated && (
-            <Button onClick={logout} color="primary">Logout</Button>
+          ) : (
+            <Button component={Link} href="/login" color="primary">
+              Login
+            </Button>
           )}
         </Box>
       </Toolbar>
