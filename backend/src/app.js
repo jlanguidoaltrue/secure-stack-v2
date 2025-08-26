@@ -26,7 +26,7 @@ const app = express();
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = envVars.CORS_ORIGIN.split(",").map((s) => s.trim());
-    console.log("CORS check - Origin:", origin, "Allowed:", allowedOrigins);
+    // console.log("CORS check - Origin:", origin, "Allowed:", allowedOrigins);
 
     // In development, be more permissive
     if (envVars.NODE_ENV === "development") {

@@ -18,9 +18,8 @@ router.use("/uploads", uploadRoutes);
 router.use("/logs/client-error", clientErrorRoutes);
 
 // Test error routes (only in development)
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   router.use("/test-errors", testErrorRoutes);
 }
 
 export default router;
- 
