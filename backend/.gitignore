@@ -1,2 +1,24 @@
+# Node
 node_modules/
+npm-debug.log*
+yarn*.log
+.pnpm-store
+
+# Env
 .env
+.env.*.local
+backend/.env
+
+
+# Backend artifacts
+backend/coverage/
+backend/dist/
+backend/uploads/
+backend/logs/
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+.vscode/* 
+!.vscode/settings.json
+!.vscode/extensions.json

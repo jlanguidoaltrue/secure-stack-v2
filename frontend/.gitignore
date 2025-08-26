@@ -1,2 +1,27 @@
+# Node
 node_modules/
+npm-debug.log*
+yarn*.log
+.pnpm-store
+
+# Env
 .env
+.env.*.local
+backend/.env
+frontend/.env.local
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/.vercel/
+frontend/coverage/
+frontend/.eslintcache
+
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+.vscode/* 
+!.vscode/settings.json
+!.vscode/extensions.json
