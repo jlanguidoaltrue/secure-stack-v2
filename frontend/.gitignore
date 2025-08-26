@@ -4,24 +4,18 @@ npm-debug.log*
 yarn*.log
 .pnpm-store
 
+# Next.js build/cache
+.next/
+out/
+.turbo/
+.vercel/
+coverage/
+.eslintcache
+
 # Env
-.env
+.env.local
 .env.*.local
-backend/.env
-frontend/.env.local
 
-# Next.js
-frontend/.next/
-frontend/out/
-frontend/.turbo/
-frontend/.vercel/
-frontend/coverage/
-frontend/.eslintcache
-
-
-# Editor/OS
+# OS/Editor
 .DS_Store
 Thumbs.db
-.vscode/* 
-!.vscode/settings.json
-!.vscode/extensions.json

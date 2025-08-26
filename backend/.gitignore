@@ -7,18 +7,16 @@ yarn*.log
 # Env
 .env
 .env.*.local
-backend/.env
 
+# Build/artifacts
+coverage/
+dist/
+logs/
 
-# Backend artifacts
-backend/coverage/
-backend/dist/
-backend/uploads/
-backend/logs/
+# Uploads (keep folder, ignore contents)
+uploads/*
+!uploads/.gitkeep
 
-# Editor/OS
+# OS/Editor
 .DS_Store
 Thumbs.db
-.vscode/* 
-!.vscode/settings.json
-!.vscode/extensions.json
