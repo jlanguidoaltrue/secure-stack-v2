@@ -5,8 +5,8 @@ yarn*.log
 .pnpm-store
 
 # Next.js build/cache
-.next/
-out/
+/.next/
+/out/
 .turbo/
 .vercel/
 coverage/
