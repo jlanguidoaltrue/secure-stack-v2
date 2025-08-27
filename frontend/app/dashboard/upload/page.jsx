@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import api from "../../lib/api.js";
+import api from "../../../lib/api.js";
 import { Paper, Typography, Button, List, ListItem, Link } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 

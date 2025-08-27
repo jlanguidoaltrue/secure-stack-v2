@@ -7,17 +7,24 @@ import profileRoutes from "./profile.route.js";
 import uploadRoutes from "./upload.route.js";
 import clientErrorRoutes from "./client-error.route.js";
 import testErrorRoutes from "./test-error.route.js";
+import { requireMfa } from "../middlewares/requireMfa.middleware.js";
+import auth from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
 router.use("/auth", authRoutes);
 router.use("/auth/social", socialRoutes);
-router.use("/admin", admin);
-router.use("/users", userRoutes);
-router.use("/profile", profileRoutes);
-router.use("/uploads", uploadRoutes);
-router.use("/logs/client-error", clientErrorRoutes);
 
-// Test error routes (only in development)
+router.use(auth);
+
+router.use(requireMfa);
+
+// Protected-by-MFA routes
+router.use("/profile", profileRoutes);
+router.use("/users", userRoutes);
+router.use("/uploads", uploadRoutes);
+router.use("/admin", admin);
+
 if (process.env.NODE_ENV === "development") {
   router.use("/test-errors", testErrorRoutes);
 }

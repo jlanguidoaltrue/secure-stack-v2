@@ -19,41 +19,55 @@ export default function LoginPage() {
   const [mfaToken, setOtp] = useState("");
   const [backupCode, setBackup] = useState("");
   const [msg, setMsg] = useState("");
-  const [submitting, setSubmitting] = useState(false); // <-- lock
+  const [submitting, setSubmitting] = useState(false); // lock
   const controllerRef = useRef(null); // optional: abort previous try
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) router.push("/");
-  }, [router]);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (submitting) return; // <-- ignore extra clicks/enters
+    if (submitting) return;
     setSubmitting(true);
 
-    // abort any previous attempt (belt & suspenders)
     if (controllerRef.current) controllerRef.current.abort();
     controllerRef.current = new AbortController();
 
     setMsg("");
     try {
-      const res = await api.post(
-        "/auth/login",
-        { usernameOrEmail, password, mfaToken, backupCode },
-        { signal: controllerRef.current.signal }
-      );
-      const { accessToken, refreshToken } = res.data.data.tokens;
+      const payload = { usernameOrEmail, password };
+      if (mfaToken?.trim()) payload.mfaToken = mfaToken.trim();
+
+      if (backupCode?.trim()) {
+        payload.backupCode = backupCode.replace(/[\s-]/g, "").toUpperCase();
+      }
+
+      const res = await api.post("/auth/login", payload, {
+        signal: controllerRef.current.signal,
+      });
+      const { tokens, user } = res.data.data;
+      const { accessToken, refreshToken } = tokens;
+
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      sessionStorage.setItem("userData", JSON.stringify(user));
       window.dispatchEvent(new Event("auth:changed"));
       toast.success("Successfully logged in!");
       setMsg("Logged in!");
-      router.push("/");
+
+      // Updated routing logic
+      if (!user.mfaEnabled) {
+        // If MFA is not enabled, route to setup
+        router.replace("/mfa-setup");
+      } else {
+        // If MFA is enabled, store login credentials and route to MFA verification
+        sessionStorage.setItem(
+          "mfaLogin",
+          JSON.stringify({ usernameOrEmail, password })
+        );
+        router.replace("/mfa");
+      }
     } catch (e) {
-      const errorMsg =
-        e.response?.data?.message ||
-        (e.name === "CanceledError" ? "Canceled" : "Login failed");
+      const isCanceled = e.code === "ERR_CANCELED" || e.name === "CanceledError";
+      const errorMsg = e.response?.data?.message || (isCanceled ? "Canceled" : "Login failed");
+
       toast.error(errorMsg);
       setMsg(errorMsg);
     } finally {
@@ -63,7 +77,7 @@ export default function LoginPage() {
   };
 
   const oauth = (provider) => {
-    if (submitting) return; // optional: also lock OAuth buttons
+    if (submitting) return;
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/social/${provider}`;
   };
 
@@ -109,20 +123,7 @@ export default function LoginPage() {
             fullWidth
             disabled={submitting}
           />
-          <TextField
-            label="TOTP (if enabled)"
-            value={mfaToken}
-            onChange={(e) => setOtp(e.target.value)}
-            fullWidth
-            disabled={submitting}
-          />
-          <TextField
-            label="Backup code (optional)"
-            value={backupCode}
-            onChange={(e) => setBackup(e.target.value)}
-            fullWidth
-            disabled={submitting}
-          />
+
           <Button
             type="submit"
             variant="contained"

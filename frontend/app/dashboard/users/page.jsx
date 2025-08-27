@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import api from '../../lib/api.js';
+import api from '../../../lib/api.js';
 import { Paper, Typography, TextField, Button, MenuItem, Table, TableHead, TableRow, TableCell, TableBody, Stack } from '@mui/material';
 
 export default function Users(){

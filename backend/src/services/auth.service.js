@@ -9,6 +9,7 @@ export async function issueTokens(user, meta = {}) {
     sub: String(user._id),
     email: user.email,
     role: user.role || "user",
+    mfa: !!user.mfaEnabled,
   };
   const accessToken = jwt.sign(payload, envVars.JWT_SECRET, {
     expiresIn: envVars.JWT_EXPIRES_IN,

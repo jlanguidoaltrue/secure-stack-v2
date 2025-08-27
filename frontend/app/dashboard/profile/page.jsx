@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import api from "../../lib/api.js";
+import api from "../../../lib/api.js";
 import {
   Paper,
   Typography,
@@ -9,6 +9,7 @@ import {
   Stack,
   Avatar,
 } from "@mui/material";
+import TOTP from "../../../components/TOTP.jsx";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -24,7 +25,15 @@ export default function ProfilePage() {
     }
   };
   useEffect(() => {
-    load();
+    (async () => {
+      try {
+        const { getProfile } = await import("../../../lib/api.js");
+        const p = await getProfile();
+        setProfile(p);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
   }, []);
 
   const save = async (e) => {
@@ -34,6 +43,7 @@ export default function ProfilePage() {
         firstName: e.currentTarget.firstName.value,
         lastName: e.currentTarget.lastName.value,
         bio: e.currentTarget.bio.value,
+        phone: e.currentTarget.phone.value,
       };
       const res = await api.patch("/profile/me", patch);
       setProfile(res.data.data);
@@ -67,7 +77,6 @@ export default function ProfilePage() {
       {profile && (
         <Paper className="p-4 space-y-4">
           <Stack direction="row" spacing={3} alignItems="center">
-            {console.log(profile.avatarUrl)}
             <Avatar
               src={
                 profile.avatarUrl
@@ -106,11 +115,20 @@ export default function ProfilePage() {
                 multiline
                 rows={3}
               />
+              <TextField
+                name="phone"
+                label="Phone Number (for SMS-based MFA)"
+                defaultValue={profile.phone || ""}
+                placeholder="+1234567890"
+                helperText="Include country code, e.g. +1 for USA"
+              />
               <Button type="submit" variant="contained">
                 Save
               </Button>
             </Stack>
           </form>
+          {/* MFA section */}
+          <TOTP mfaEnabled={!!profile.mfaEnabled} onChanged={load} />
         </Paper>
       )}
     </section>

@@ -72,19 +72,23 @@ export default function NavBar() {
 
           {isAuthenticated ? (
             <>
-              <Button component={Link} href="/users" color="primary">
+              <Button component={Link} href="/dashboard/users" color="primary">
                 Users
               </Button>
-              <Button component={Link} href="/profile" color="primary">
+              <Button
+                component={Link}
+                href="/dashboard/profile"
+                color="primary"
+              >
                 Profile
               </Button>
-              <Button component={Link} href="/upload" color="primary">
+              <Button component={Link} href="/dashboard/upload" color="primary">
                 Upload
               </Button>
               {isAdmin && (
                 <Button
                   component={Link}
-                  href="/admin/error-logs"
+                  href="/dashboard/error-logs"
                   color="primary"
                 >
                   Error Logs
