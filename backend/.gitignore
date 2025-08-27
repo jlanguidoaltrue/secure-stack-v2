@@ -1,22 +1,2 @@
-# Node
 node_modules/
-npm-debug.log*
-yarn*.log
-.pnpm-store
- 
-# Env
 .env
-.env.*.local
- 
-# Build/artifacts
-coverage/
-dist/
-logs/
- 
-# Uploads (keep folder, ignore contents)
-uploads/*
-!uploads/.gitkeep
- 
-# OS/Editor
-.DS_Store
-Thumbs.db

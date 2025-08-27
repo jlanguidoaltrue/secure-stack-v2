@@ -29,9 +29,9 @@ const corsOptions = {
     console.log("CORS check - Origin:", origin, "Allowed:", allowedOrigins);
 
     // In development, be more permissive
-    // if (envVars.NODE_ENV === "development") {
-    //   return callback(null, true);
-    // }
+    if (envVars.NODE_ENV === "development") {
+      return callback(null, true);
+    }
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);

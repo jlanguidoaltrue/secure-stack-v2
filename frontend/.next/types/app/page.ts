@@ -1,4 +1,4 @@
-// File: C:\Users\JohnDominicTorcelino\Desktop\codebase\secure-stack-v2\frontend\app\page.jsx
+// File: C:\Users\JayAubreyLanguido\Downloads\secure-stack-v2\secure-stack-v2\frontend\app\page.jsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

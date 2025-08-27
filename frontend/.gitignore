@@ -1,21 +1,2 @@
-# Node
 node_modules/
-npm-debug.log*
-yarn*.log
-.pnpm-store
- 
-# Next.js build/cache
-.next/
-out/
-.turbo/
-.vercel/
-coverage/
-.eslintcache
- 
-# Env
-.env.local
-.env.*.local
- 
-# OS/Editor
-.DS_Store
-Thumbs.db
+.env
