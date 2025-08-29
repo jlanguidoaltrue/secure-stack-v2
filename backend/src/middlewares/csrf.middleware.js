@@ -11,7 +11,7 @@ setInterval(() => {
       csrfTokens.delete(token);
     }
   }
-}, 300000); // Clean every 5 minutes
+}, 300000); // Clean every 5 minutes         
 
 export function generateCSRFToken(req, res, next) {
   if (req.method === 'GET') {
