@@ -1,14 +1,21 @@
 "use client";
-import * as React from 'react';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { Toaster } from 'react-hot-toast';
-import toast from 'react-hot-toast';
-import AuthProvider from './AuthProvider';
-import { useRouter } from 'next/navigation';
+import * as React from "react";
+import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import AuthProvider from "./AuthProvider";
+import { useRouter } from "next/navigation";
 
-const theme = createTheme({ palette: { mode: 'light', primary: { main: '#2563eb' }, secondary: { main: '#9333ea' } }, shape: { borderRadius: 12 } });
+const theme = createTheme({
+  palette: {
+    mode: "light",
+    primary: { main: "#2563eb" },
+    secondary: { main: "#9333ea" },
+  },
+  shape: { borderRadius: 12 },
+});
 
-export default function Providers({ children }){ 
+export default function Providers({ children }) {
   const router = useRouter();
 
   React.useEffect(() => {
@@ -30,44 +37,46 @@ export default function Providers({ children }){
       }
     };
 
-    window.addEventListener('auth:redirect', onRedirect);
-    return () => window.removeEventListener('auth:redirect', onRedirect);
+    window.addEventListener("auth:redirect", onRedirect);
+    return () => window.removeEventListener("auth:redirect", onRedirect);
   }, [router]);
 
   React.useEffect(() => {
     const onThrottled = (e) => {
       const ms = e?.detail?.retryAfter || 60000;
-      toast.error(`API rate limit reached. Retrying in ${Math.ceil(ms/1000)}s`);
+      toast.error(
+        `API rate limit reached. Retrying in ${Math.ceil(ms / 1000)}s`
+      );
     };
-    window.addEventListener('api:throttled', onThrottled);
-    return () => window.removeEventListener('api:throttled', onThrottled);
+    window.addEventListener("api:throttled", onThrottled);
+    return () => window.removeEventListener("api:throttled", onThrottled);
   }, []);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-  <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
           success: {
             duration: 3000,
             theme: {
-              primary: '#4aed88',
+              primary: "#4aed88",
             },
           },
           error: {
             duration: 5000,
             theme: {
-              primary: '#ff4b4b',
+              primary: "#ff4b4b",
             },
           },
         }}
       />
-  <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </ThemeProvider>
-  ); 
+  );
 }
