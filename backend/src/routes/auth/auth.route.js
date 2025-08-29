@@ -9,7 +9,7 @@ import {
   refreshSchema,
   registerSchema,
 } from "../../schemas/auth.schema.js";
-import { requireMfa } from "../../middlewares/requireMfa.middleware.js"; // <-- NEW
+import { requireMfa } from "../../middlewares/requireMfa.middleware.js";
 
 const router = express.Router();
 
@@ -24,14 +24,13 @@ router.post("/login", loginLimiter, validate(loginSchema), authCtrl.login);
 router.post("/refresh", validate(refreshSchema), authCtrl.refresh);
 router.post("/forgot", authCtrl.forgotPassword);
 router.post("/reset", authCtrl.resetPassword);
+router.post("/logout", auth, authCtrl.doLogout);
 
 router.post("/mfa/enroll", auth, authCtrl.mfaEnroll);
 router.post("/mfa/verify", auth, authCtrl.mfaVerify);
 router.post("/mfa/otp/send", auth, authCtrl.sendMfaOtp);
 router.post("/mfa/otp/verify", auth, authCtrl.verifyMfaOtpEnroll);
 router.post("/mfa/disable", auth, authCtrl.mfaDisable);
-
-router.post("/logout", auth, authCtrl.doLogout);
 
 router.post(
   "/register",
